@@ -1,37 +1,22 @@
 const express = require("express");
 const app = express();
-const pg = require("pg");
+const bodyParser = require('body-parser');
+const client = require('./dbClient'); 
+const adminRoutes = require('./api/routes/adminRoutes.js')
 
+app.use(bodyParser.json());
 
-const { Client } = pg;
-const client = new Client({
-    user: 'postgres',
-    password: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    database: 'tokomini',
-  })
-async function connect() {
-    await client.connect();
-  
-    const out = await client
-      .query("SELECT $1::text as message", ["Hello world!"])
-      .then((obj) => {
-        return obj;
-      })
-      .catch((e) => {
-        console.log(e);
-        return null;
-      });
-  
-    console.log(out);
-  
-    await client.end();
-  }
+client.connect() 
+  .then(() => console.log("Database connected"))
+  .catch((err) => console.log("Error connecting to the database", err));
 
-connect()
 app.set("view engine", "ejs");
 app.get("/", (req, res) => {
   res.render("index");
 });
-app.listen(3000);
+
+app.use('/admin', adminRoutes);
+
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});

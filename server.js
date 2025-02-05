@@ -3,6 +3,8 @@ const app = express();
 const bodyParser = require('body-parser');
 const client = require('./dbClient'); 
 const adminRoutes = require('./api/routes/adminRoutes.js')
+const userRoutes = require('./api/routes/userRoutes.js')
+
 
 app.use(bodyParser.json());
 
@@ -15,7 +17,9 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
-app.use('/admin', adminRoutes);
+app.use('/admin', adminRoutes); 
+app.use('/user', userRoutes); 
+
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");

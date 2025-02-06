@@ -1,5 +1,6 @@
 const client = require('../../dbClient');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const userController = {
     register : async (req,res,next) => {
 
@@ -19,8 +20,8 @@ const userController = {
             }
             const hashedPassword = await bcrypt.hash(password,10)
             const newUserInserted = await client.query(
-                "INSERT INTO Users (name, email, password) VALUES ($1, $2, $3) RETURNING *",
-                [name, email, hashedPassword]
+                "INSERT INTO Users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *",
+                [name, email, hashedPassword, "user"]
               );
             const newUser = newUserInserted.rows[0];
             // Also create the cart for the user
@@ -68,9 +69,10 @@ const userController = {
 
             const token = jwt.sign({
                 id: user.userid,
+                role : user.role
             },process.env.secret, {expiresIn: '1h'});
 
-            await client.query("UPDATE users SET token $1 WHERE userid = $2", [token,userid])
+            await client.query("UPDATE users SET token = $1 WHERE userid = $2", [token, user.userid])
             return res.json({
                 message: "Login successful!",
                 user: {
@@ -153,9 +155,11 @@ const userController = {
   },
   // TODO : TRY TO USE SESSIONID 
   addToCart : async(req,res,next) => {
-    const { productId, userId , qty} = req.body;
+    const { productId, qty} = req.body;
+    const token = req.header('Authorization')?.replace('Bearer ', '')
+    const decoded = jwt.verify(token, process.env.secret);
     try {
-        const result = await client.query(`SELECT cartid FROM carts WHERE userid = $1`, [userId])
+        const result = await client.query(`SELECT cartid FROM carts WHERE userid = $1`, [decoded.id])
         const cartId = result.rows[0].cartid;
 
         const resCreateCartItems = await client.query(`INSERT INTO cartitems (cartid, productid, qty) VALUES ($1, $2, $3) RETURNING *`, [cartId, productId, qty])

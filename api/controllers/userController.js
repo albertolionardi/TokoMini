@@ -1,6 +1,13 @@
 const client = require('../../dbClient');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
+function getDecodedToken(req){
+    const encodedToken = req.header('Authorization')?.replace('Bearer ', '')
+    const decoded = jwt.verify(encodedToken, process.env.secret)
+    return decoded
+};
+
 const userController = {
     register: async (req, res, next) => {
 
@@ -170,10 +177,9 @@ const userController = {
         }
     },
     addToCart: async (req, res, next) => {
-        const { productId, qty } = req.body;
-        const token = req.header('Authorization')?.replace('Bearer ', '')
-        const decoded = jwt.verify(token, process.env.secret);
         try {
+            const { productId, qty } = req.body;
+            const decoded = getDecodedToken(req);
             const result = await client.query(`SELECT cartid FROM carts WHERE userid = $1`, [decoded.userid])
             const cartId = result.rows[0].cartid;
 
@@ -194,8 +200,7 @@ const userController = {
     submitOrder: async (req, res, next) => {
         const {address } = req.body
         try {
-            const token = req.header('Authorization')?.replace('Bearer ', '')
-            const decoded = jwt.verify(token, process.env.secret);
+            const decoded = getDecodedToken(req);
             var today = new Date();
             const cartId = (await client.query(`SELECT cartid FROM carts WHERE userid = $1`, 
                 [decoded.userid])
@@ -212,8 +217,6 @@ const userController = {
                 VALUES ($1 , $2, $3, $4, $5) RETURNING *`, 
                 [decoded.userid, today, "Pending", cartId, address]
             )
-           
-            
             const createdOrder = result.rows[0]
             await client.query(
                 'DELETE FROM cartitems WHERE cartid = $1',
@@ -233,11 +236,8 @@ const userController = {
             console.log("Error Submitting Order: ", err);
             return res.status(500).json({ message: "Internal server error" });
         }
-
-    }
-
+    },
 }
-
 module.exports = userController;
 
 

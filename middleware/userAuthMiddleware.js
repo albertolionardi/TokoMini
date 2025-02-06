@@ -12,7 +12,7 @@ const userAuthMiddleware = async (req, res, next) => {
             return res.status(403).json({ message: "Access denied. Users only." });
         }
         const query = "SELECT * FROM users WHERE userid = $1 AND token = $2";
-        const result = await client.query(query, [decoded.id, token]);
+        const result = await client.query(query, [decoded.userid, token]);
         const user = result.rows[0];
 
         if (!user) {

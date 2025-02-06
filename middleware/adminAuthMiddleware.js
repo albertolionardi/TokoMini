@@ -12,7 +12,7 @@ const adminAuthMiddleware = async (req, res, next) => {
             return res.status(403).json({ message: "Access denied. Admins only." });
         }
         const query = "SELECT * FROM admins WHERE adminid = $1 AND token = $2";
-        const result = await client.query(query, [decoded.id, token]);
+        const result = await client.query(query, [decoded.adminid, token]);
         const admin = result.rows[0];
 
         if (!admin) {

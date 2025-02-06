@@ -26,7 +26,7 @@ const userController = {
             const newUser = newUserInserted.rows[0];
             // Also create the cart for the user
             await client.query("INSERT INTO carts (userid) VALUES ($1)", [newUser.userid])
-            return res.status(201).json({
+            return res.status(200).json({
                 message: "User registered successfully!",
                 user: {
                     userId: newUser.userid,
@@ -60,8 +60,6 @@ const userController = {
                     message: `Account is locked. Try again in ${remainingLockTime} minutes.`,
                 });
             }
-
-
             const passwordChecker = await bcrypt.compare(password, user.password);
             if (!passwordChecker) {
                 const loginFailCounter = user.loginfailcounter + 1;
@@ -85,31 +83,12 @@ const userController = {
                 "UPDATE users SET loginfailcounter = 0, lockedduration = NULL WHERE userid = $1",
                 [user.userid]
             );
-            // Token Checker
-            let token = user.token;
-            if (!token) {
-                token = jwt.sign({
-                    id: user.userid,
-                    role: user.role
-                }, process.env.secret, { expiresIn: '1h' });
+            let token = jwt.sign({
+                userid: user.userid,
+                role: user.role
+            }, process.env.secret, { expiresIn: '1h' });
 
-                await client.query("UPDATE users SET token = $1 WHERE userid = $2", [token, user.userid]);
-            }
-            try {
-                jwt.verify(token, process.env.secret); // Check if the token is valid
-            }
-            catch (error) {
-                if (error.name === 'TokenExpiredError') {
-                    // If token expired we generate a new one
-                    token = jwt.sign({
-                        id: user.userid,
-                        role: user.role
-                    }, process.env.secret, { expiresIn: '1h' });
-
-                    await client.query("UPDATE users SET token = $1 WHERE userid = $2", [token, user.userid]);
-                }
-            }
-            //Otherwise just return
+            await client.query("UPDATE users SET token = $1 WHERE userid = $2", [token, user.userid]);
             return res.json({
                 message: "Login successful!",
                 user: {
@@ -125,7 +104,7 @@ const userController = {
 
         }
     },
-    listProduct: async (req, res, next) => {
+    listProducts: async (req, res, next) => {
 
         try {
             const page = parseInt(req.query.page) || 1
@@ -190,18 +169,17 @@ const userController = {
             });
         }
     },
-    // TODO : TRY TO USE SESSIONID 
     addToCart: async (req, res, next) => {
         const { productId, qty } = req.body;
         const token = req.header('Authorization')?.replace('Bearer ', '')
         const decoded = jwt.verify(token, process.env.secret);
         try {
-            const result = await client.query(`SELECT cartid FROM carts WHERE userid = $1`, [decoded.id])
+            const result = await client.query(`SELECT cartid FROM carts WHERE userid = $1`, [decoded.userid])
             const cartId = result.rows[0].cartid;
 
             const resCreateCartItems = await client.query(`INSERT INTO cartitems (cartid, productid, qty) VALUES ($1, $2, $3) RETURNING *`, [cartId, productId, qty])
             const createdCartItems = resCreateCartItems.rows[0]
-            return res.status(201).json({
+            return res.status(200).json({
                 message: "Product successfully added to the cart",
                 cartId: cartId,
                 productId: createdCartItems.productid,
@@ -214,15 +192,34 @@ const userController = {
         }
     },
     submitOrder: async (req, res, next) => {
-        const { userId, date, cartId, address } = req.body
+        const {address } = req.body
         try {
-            const result = await client.query('INSERT INTO orders (userid,date,status,cartid,address) VALUES ($1 , $2, $3, $4, $5) RETURNING *', [userId, date, "Pending", cartId, address])
+            const token = req.header('Authorization')?.replace('Bearer ', '')
+            const decoded = jwt.verify(token, process.env.secret);
+            var today = new Date();
+            const cartId = (await client.query(`SELECT cartid FROM carts WHERE userid = $1`, 
+                [decoded.userid])
+            ).rows[0].cartid
+            
+            const cartItemsCount = (await client.query(`
+                SELECT COUNT(*) FROM cartitems WHERE cartid = $1
+                `, [cartId])).rows[0].count
+            if (parseInt(cartItemsCount,10) === 0){
+                return res.status(300).json({ message : "Cart is empty"})
+            }
+            const result = await client.query(`
+                INSERT INTO orders (userid,date,status,cartid,address) 
+                VALUES ($1 , $2, $3, $4, $5) RETURNING *`, 
+                [decoded.userid, today, "Pending", cartId, address]
+            )
+           
+            
             const createdOrder = result.rows[0]
             await client.query(
                 'DELETE FROM cartitems WHERE cartid = $1',
                 [cartId]
             );
-            return res.status(201).json({
+            return res.status(200).json({
                 message: "Order successfully created",
                 orderid: createdOrder.orderid,
                 userid: createdOrder.userid,

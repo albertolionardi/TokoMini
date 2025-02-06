@@ -15,8 +15,8 @@ const adminController = {
       const currentTime = new Date();
       if (admin.lockedduration && new Date(admin.lockedduration) > currentTime) {
         const remainingLockTime = Math.ceil((new Date(admin.lockedduration) - currentTime) / 60000);
-        return res.status(403).json({ 
-          message: `Account is locked. Try again in ${remainingLockTime} minutes.` 
+        return res.status(403).json({
+          message: `Account is locked. Try again in ${remainingLockTime} minutes.`
         });
       }
 
@@ -28,13 +28,13 @@ const adminController = {
 
         if (loginFailCounter >= 3) {
           const lockDurationMinutes = 30;
-          lockedUntil = new Date(currentTime.getTime() + lockDurationMinutes * 60 * 1000); 
+          lockedUntil = new Date(currentTime.getTime() + lockDurationMinutes * 60 * 1000);
         }
         await client.query(
           "UPDATE admins SET loginfailcounter = $1, lockedduration = $2 WHERE adminid = $3",
           [loginFailCounter, lockedUntil, admin.adminid]
         );
-        
+
         if (loginFailCounter >= 3) {
           return res.status(403).json({ message: "Account locked due to multiple failed login attempts. Try again in 30 minutes." });
         } else {
@@ -46,31 +46,11 @@ const adminController = {
         "UPDATE admins SET loginfailcounter = 0, lockedduration = NULL WHERE adminid = $1",
         [admin.adminid]
       );
-      // Token Checker
-      let token = admin.token;
-      if (!token) {
-        token = jwt.sign({
-            id: admin.adminid,
-            role: admin.role
-        }, process.env.secret, { expiresIn: '1h' });
-    
-        await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);
-    }
-      try {
-        jwt.verify(token, process.env.secret); 
-      } 
-      catch (error) {
-        if (error.name === 'TokenExpiredError') {
-          // If token expired we generate a new one
-          token = jwt.sign({
-            id: admin.adminid,
-            role: admin.role
-          }, process.env.secret, { expiresIn: '1h' });
-
-          await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);
-        }
-      }
-      //Otherwise just return
+      let token = jwt.sign({
+        adminid: admin.adminid,
+        role: admin.role
+      }, process.env.secret, { expiresIn: '1h' });
+      await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);
       return res.json({
         admin: {
           name: admin.name,
@@ -85,19 +65,19 @@ const adminController = {
 
     }
   },
-  createProduct : async (req,res,next) => {
-    const {productName,productPrice,productCategory,productImg,productStock,productDescription} = req.body;
+  createProduct: async (req, res, next) => {
+    const { productName, productPrice, productCategory, productImg, productStock, productDescription } = req.body;
     if (!productName || !productPrice || !productCategory || !productImg || !productStock || !productDescription) {
       return res.status(400).json({ message: "All fields are required!" });
     }
-    try{
+    try {
       const result = await client.query(
         `INSERT INTO products 
         (productname, productprice, productcategory, productimg, productstock, productdescription) 
-        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, 
+        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
         [productName, productPrice, productCategory, productImg, productStock, productDescription])
       const insertedProduct = result.rows[0]
-      return res.status(201).json({
+      return res.status(200).json({
         message: "Product created successfully!",
         product: {
           productName: insertedProduct.productname,
@@ -109,13 +89,13 @@ const adminController = {
         }
       });
     }
-    catch(err){
-      console.log("Error creating product : " , err)
+    catch (err) {
+      console.log("Error creating product : ", err)
       return res.status(500).json({ message: "Internal server error" });
 
     }
   },
-  readProducts : async(req,res,next) => {
+  readProducts: async (req, res, next) => {
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
@@ -123,13 +103,10 @@ const adminController = {
     try {
       const result = await client.query(`SELECT * FROM products LIMIT $1 OFFSET $2`, [limit, offset]);
       const products = result.rows;
-      if (products.length === 0) {
-        return res.status(404).json({ message: "No products found" });
-      }
       return res.json({
         page: page,
         limit: limit,
-        total: products.length, 
+        total: products.length,
         products: products.map(product => ({
           productId: product.productid,
           productName: product.productname,
@@ -141,29 +118,33 @@ const adminController = {
         }))
       });
     }
-    catch(err){
+    catch (err) {
       console.log("Error in fetching products:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
-  updateProduct : async (req,res,next) => {
+  updateProduct: async (req, res, next) => {
     const productId = req.params.productId;
     if (isNaN(productId) || productId <= 0) {
       return res.status(400).json({ message: "Invalid product ID" });
-    }    
-    const {productName,productPrice,productCategory,productImg,productStock,productDescription} = req.body;
+    }
+    const { productName, productPrice, productCategory, productImg, productStock, productDescription } = req.body;
     if (!productName || !productPrice || !productCategory || !productImg || !productStock || !productDescription) {
       return res.status(400).json({ message: "All fields are required!" });
     }
-    try{
+    try {
       const result = await client.query(
         `UPDATE products 
         SET productname = $1, productprice = $2, productcategory = $3, productimg = $4, productstock = $5, productdescription = $6 
         WHERE productid = $7 
-        RETURNING *`, 
-        [productName, productPrice, productCategory, productImg, productStock, productDescription, productId])
+        RETURNING *`,
+        [productName, productPrice, productCategory, productImg, productStock, productDescription, productId]
+      )
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Product not found" })
+      }
       const insertedProduct = result.rows[0]
-      return res.status(201).json({
+      return res.status(200).json({
         message: "Product updated successfully!",
         product: {
           productName: insertedProduct.productname,
@@ -175,7 +156,7 @@ const adminController = {
         }
       });
     }
-    catch(err){
+    catch (err) {
       console.log("Error updating product")
       return res.status(500).json({ message: "Internal server error" });
     }
@@ -199,25 +180,22 @@ const adminController = {
     }
   },
 
-  readUsers: async(req,res,next) => {
+  readUsers: async (req, res, next) => {
     try {
       const users = await client.query("SELECT userid, name, email FROM users");
-      if (users.rows.length == 0) {
-        return res.status(404).json({ message: "No users available" });
-      }
       return res.status(200).json({
         message: "Users retrieved successfully",
         users: users.rows
       });
 
     }
-    catch(err) {
+    catch (err) {
       console.error("Error reading users:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   },
 
-  
+
 
 };
 

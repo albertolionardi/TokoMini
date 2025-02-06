@@ -6,10 +6,10 @@ const userAuthMiddleware = require('../../middleware/userAuthMiddleware');
 
 router.post('/register', userController.register);
 router.post('/login', userController.login);
-router.get('/listProduct', userAuthMiddleware, userController.listProduct);
+router.get('/listProducts', userAuthMiddleware, userController.listProducts);
 router.get('/viewProduct/:productId', userAuthMiddleware, userController.getProductByid);
 router.post('/addToCart', userAuthMiddleware, userController.addToCart);
-router.post('/order', userAuthMiddleware, userController.submitOrder)
+router.post('/submitOrder', userAuthMiddleware, userController.submitOrder)
 
 
 

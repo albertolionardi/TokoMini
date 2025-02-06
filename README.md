@@ -26,4 +26,8 @@ The project is using these tech stacks :
     - Make sure to match the database setup with the **pushed .env file**
     - Click on the `tokomini` database and restore it using the `.\db-backup\tokominibackup.sql`
 - Import the **exported postman** located inside `.\docs\TokoMiniDocumentation_Postman.json`
+- For admin credentials :
+  - Email : `admin@example.com`
+  - Password : `adminpassword`
+    - **As mentioned in project description, there is no hashing for admin's password, so i stored the password as-is.**
 - Happy testing ^_^

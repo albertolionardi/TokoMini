@@ -1,0 +1,481 @@
+{
+	"info": {
+		"_postman_id": "00290482-70f5-4f81-974c-a217dc73822a",
+		"name": "Documentation for Toko Mini",
+		"description": "# **Toko Mini API Documentation**\n\nThis is a detailed documentation for the **Toko Mini API** implementation. Click each folder to reveal detailed implementation.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32072972"
+	},
+	"item": [
+		{
+			"name": "Admin API",
+			"item": [
+				{
+					"name": "Admin Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"admin@example.com\",\r\n    \"password\": \"adminpassword\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/admin/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"productName\": \"Product 2\",\r\n  \"productPrice\": 32.99,\r\n  \"productCategory\": \"Stone\",\r\n  \"productImg\": \"stone-url.jpg\",\r\n  \"productStock\": 99999,\r\n  \"productDescription\": \"Rock Solid.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/admin/createProduct/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"createProduct",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin View Product",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/admin/viewProducts",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"viewProducts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Update Product by ID",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"productName\": \"Product X Updated\",\r\n  \"productPrice\": 15.99,\r\n  \"productCategory\": \"Stone\",\r\n  \"productImg\": \"stoneupdated-url.jpg\",\r\n  \"productStock\": 1,\r\n  \"productDescription\": \"Rock Solid Updated.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/admin/updateProduct/:productId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"updateProduct",
+								":productId"
+							],
+							"variable": [
+								{
+									"key": "productId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Delete Product by ID",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/admin/deleteProduct/:productId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"deleteProduct",
+								":productId"
+							],
+							"variable": [
+								{
+									"key": "productId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/admin/getUsers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"admin",
+								"getUsers"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This file provides a collection of APIs for managing admin-related operations such as login, product management, and user management.\n\nBelow are the details of each API:\n\n---\n\n### 1\\. **Login (****`login`****)**\n\n#### **Method:** `POST`\n\n**URL Path:** `/admin/login`\n\n**Request Body:**\n\n- `email`: The admin's email address.\n    \n- `password`: The admin's password.\n    \n\n**Functionality:**\n\n- Validates the admin's credentials (email and password).\n    \n- Checks if the account is locked due to multiple failed login attempts.\n    \n- If the account is locked, it returns a message with the remaining lock time.\n    \n- If the password is incorrect, it increments the failed login counter. If the counter reaches 3, the account is locked for 30 minutes.\n    \n- If the credentials are valid, it generates a new token and returns it along with the admin's details (name and email).\n    \n\n**Responses:**\n\n- **200 OK**: Successful login with a valid token.\n    \n- **401 Unauthorized**: Invalid credentials.\n    \n- **403 Forbidden**: Account is locked due to multiple failed login attempts.\n    \n\n---\n\n### 2\\. **Create Product (****`createProduct`****)**\n\n#### **Method:** `POST`\n\n**URL Path:** `/admin/createProduct`\n\n**Request Body:**\n\n- `productName`: Name of the product.\n    \n- `productPrice`: Price of the product.\n    \n- `productCategory`: Category of the product.\n    \n- `productImg`: URL of the product image.\n    \n- `productStock`: Stock quantity of the product.\n    \n- `productDescription`: Description of the product.\n    \n\n**Functionality:**\n\n- Creates a new product in the `products` table.\n    \n- The request body must contain all the required fields: `productName`, `productPrice`, `productCategory`, `productImg`, `productStock`, and `productDescription`.\n    \n- Returns the created product's details.\n    \n\n**Responses:**\n\n- **200 OK**: Product created successfully.\n    \n- **400 Bad Request**: Missing required fields.\n    \n\n---\n\n### 3\\. **Read Products (**`viewProducts`**)**\n\n#### **Method:** `GET`\n\n**URL Path:** `/admin/viewProducts`\n\n**Query Parameters:**\n\n- `page`: Page number for pagination (default: 1).\n    \n- `limit`: Number of products per page (default: 10).\n    \n\n**Functionality:**\n\n- Fetches a list of products from the `products` table, with support for pagination.\n    \n- Returns a paginated list of products with details such as `productId`, `productName`, `productPrice`, `productCategory`, `productImg`, `productStock`, and `productDescription`.\n    \n\n**Responses:**\n\n- **200 OK**: Returns a paginated list of products.\n    \n\n---\n\n### 4\\. **Update Product (****`updateProduct`****)**\n\n#### **Method:** `PUT`\n\n**URL Path:** `/admin/updateProduct/:productId`\n\n**Request Body:**\n\n- `productName`: Updated name of the product.\n    \n- `productPrice`: Updated price of the product.\n    \n- `productCategory`: Updated category of the product.\n    \n- `productImg`: Updated URL of the product image.\n    \n- `productStock`: Updated stock quantity of the product.\n    \n- `productDescription`: Updated description of the product.\n    \n\n**Functionality:**\n\n- Updates an existing product based on the provided `productId` in the URL.\n    \n- Requires all fields: `productName`, `productPrice`, `productCategory`, `productImg`, `productStock`, and `productDescription`.\n    \n\n**Responses:**\n\n- **200 OK**: Product updated successfully.\n    \n- **400 Bad Request**: Invalid product id or missing required fields.\n    \n- **404 Not found** : Product not found.\n    \n\n---\n\n### 5\\. **Delete Product (****`deleteProduct`****)**\n\n#### **Method:** `DELETE`\n\n**URL Path:** `/admin/deleteProduct/:productId`\n\n**Functionality:**\n\n- Deletes a product based on the provided `productId` in the URL.\n    \n\n**Responses:**\n\n- **200 OK**: Product deleted successfully.\n    \n- **400 Not Found**: Invalid product id.\n    \n- **404 Not found** : Product not found.\n    \n\n---\n\n### 6\\. **Read Users (**`getUsers`**)**\n\n#### **Method:** `GET`\n\n**URL Path:** `/admin/getUsers`\n\n**Functionality:**\n\n- Fetches all users from the `users` table.\n    \n- Returns a list of users with details such as `userid`, `name`, and `email`.\n    \n\n**Responses:**\n\n- **200 OK**: Returns a list of users."
+		},
+		{
+			"name": "User API",
+			"item": [
+				{
+					"name": "User Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\" : \"username\",\r\n    \"email\": \"usertest@example.com\",\r\n    \"password\": \"Password123!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/user/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"user",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"email\" : \"usertest@example.com\", \"password\" : \"Password123!\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/user/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User List Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/user/listProducts",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"user",
+								"listProducts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User List Products with Query Params",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/user/listProduct",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"user",
+								"listProduct"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User View Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/user/viewProduct/:productId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"user",
+								"viewProduct",
+								":productId"
+							],
+							"variable": [
+								{
+									"key": "productId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Add To Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"productId\": \"9\",\r\n    \"qty\": 25\r\n}   ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/user/addToCart/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"user",
+								"addToCart",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Confirm Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <Token>",
+								"type": "text"
+							},
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"address\": \"GG 4 no 22\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/user/submitOrder/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"user",
+								"submitOrder",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "This file contains a collection of APIs for managing operations that can be performed by users such as user registration, login, retrieving products, cart management, and order submission. Below is the documentation for each API:\n\n---\n\n### 1\\. **Register (****`register`****)**\n\n#### **Method:** `POST`\n\n**URL Path:** `/users/register`\n\n**Request Body:**\n\n- `name`: The user's name (required).\n    \n- `email`: The user's email (required).\n    \n- `password`: The user's password (required).\n    \n\n**Functionality:**\n\n- Validates the request body to ensure `name`, `email`, and `password` are provided.\n    \n- Verifies that the password meets specific criteria (e.g., at least one uppercase letter, one lowercase letter, one digit, one special character, and a minimum length of 8).\n    \n- Checks if the email is already in use. If it is, registration fails.\n    \n- Hashes the user's password and stores the new user in the database.\n    \n- Creates a cart for the user after successful registration.\n    \n\n**Responses:**\n\n- **200** **OK :** Successful registration includes the user's details (name, email, user ID).\n    \n- **400 NOT OK :** Failure responses include error messages for missing fields, invalid password criteria, or email already in use.\n    \n\n---\n\n### 2\\. **Login (****`login`****)**\n\n#### **Method:** `POST`\n\n**URL Path:** `/users/login`\n\n**Request Body:**\n\n- `email`: The user's email (required).\n    \n- `password`: The user's password (required).\n    \n\n**Functionality:**\n\n- Validates the request body to ensure `email` and `password` are provided.\n    \n- Checks if the user's account is locked due to failing multiple login attempts. If locked, provides a message with the remaining lock duration.\n    \n- Verifies the user's password. If incorrect, increments the login failure counter. Locks the account for 30 minutes after three failed attempts.\n    \n- Resets the login failure counter upon successful login.\n    \n- Generates a JWT token for the user or validates an existing token. If the token is expired, a new one is created.\n    \n- Returns the token and user details upon successful login.\n    \n\n**Responses:**\n\n- **200 OK :** Successful login includes the user's details (name, email) and a JWT token.\n    \n- **400 NOT OK :** Failure responses include error messages for missing fields\n    \n- **401 Unauthorized :** Invalid credentials\n    \n- **403 Forbidden :** Access denied due to account is locked\n    \n\n---\n\n### 3\\. **List Products (****`listProducts`****)**\n\n#### **Method:** `GET`\n\n**URL Path:** `/users/listProducts`\n\n**Query Parameters:**\n\n- `page`: The page number for pagination (Optional and default is 1).\n    \n- `limit`: The number of products per page (Optional default is 10).\n    \n- `productcategory`: Optional filter by product category (Optional).\n    \n- `productname`: Optional filter by product name (Optional and case-insensitive).\n    \n\n**Functionality:**\n\n- Retrieves a paginated list of products from the database.\n    \n- Supports filtering by product category and product name.\n    \n\n**Responses:**\n\n- **200 OK :** Returns a paginated list of products with their details.\n    \n\n---\n\n### 4\\. **View Product by ID (**`viewProduct`**)**\n\n#### **Method:** `GET`\n\n**URL Path:** `/viewProduct/:productId`\n\n**Path Parameters:**\n\n- `productId`: The unique identifier of the product (required).\n    \n\n**Functionality:**\n\n- Validates the `productId` to ensure it is a positive integer.\n    \n- Retrieves product details from the database based on the provided `productId`.\n    \n\n**Responses:**\n\n- **200 OK :** Returns the product's details if found.\n    \n- **400 NOT OK :** Product id is invalid.\n    \n- **404 Not Found :** Product is not found.\n    \n\n---\n\n### 5\\. **Add to Cart (****`addToCart`****)**\n\n#### **Method:** `POST`\n\n**URL Path:** `/users/addToCart`\n\n**Request Body:**\n\n- `productId`: The ID of the product to add to the cart (required).\n    \n- `qty`: The quantity of the product to add (required).\n    \n\n**Functionality:**\n\n- Adds the specified product and quantity to the user's cart.\n    \n\n**Responses:**\n\n- **200 OK :** Returns a success message with the cart ID, product ID, and quantity added.\n    \n\n---\n\n### 6\\. **Submit Order (****`submitOrder`****)**\n\n#### **Method:** `POST`\n\n**URL Path:** `/submitOrder`\n\n**Request Body:**\n\n- `address`: The shipping address for the order (required).\n    \n\n**Functionality:**\n\n- Clears the user's cart after the order is successfully submitted.\n    \n- Create a new order in database and set the order status to pending\n    \n\n**Responses:**\n\n- **200 OK :** Returns the details of the created order, including the order ID, user ID, date, status, cart ID, and address.\n    \n- **300 Cart Empty:** Cart is empty"
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "{{apiKey}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "api-key",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://template.postman-echo.com"
+		},
+		{
+			"key": "apiKey",
+			"value": "yFlMjSup.IbHOCjyRiTb8QOO9Ltsbr"
+		}
+	]
+}

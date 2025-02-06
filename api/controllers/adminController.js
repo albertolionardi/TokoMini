@@ -26,6 +26,7 @@ const adminController = {
 
       const token = jwt.sign({
         id: admin.adminid,
+        role: admin.role
       }, process.env.secret, { expiresIn: '1h' });
 
       await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);

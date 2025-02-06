@@ -87,6 +87,14 @@ const userController = {
             );
             // Token Checker
             let token = user.token;
+            if (!token) {
+                token = jwt.sign({
+                    id: user.userid,
+                    role: user.role
+                }, process.env.secret, { expiresIn: '1h' });
+
+                await client.query("UPDATE users SET token = $1 WHERE userid = $2", [token, user.userid]);
+            }
             try {
                 jwt.verify(token, process.env.secret); // Check if the token is valid
             }

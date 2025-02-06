@@ -48,6 +48,14 @@ const adminController = {
       );
       // Token Checker
       let token = admin.token;
+      if (!token) {
+        token = jwt.sign({
+            id: admin.adminid,
+            role: admin.role
+        }, process.env.secret, { expiresIn: '1h' });
+    
+        await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);
+    }
       try {
         jwt.verify(token, process.env.secret); 
       } 
@@ -102,7 +110,7 @@ const adminController = {
       });
     }
     catch(err){
-      console.log("Error creating product")
+      console.log("Error creating product : " , err)
       return res.status(500).json({ message: "Internal server error" });
 
     }

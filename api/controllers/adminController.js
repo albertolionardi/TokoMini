@@ -11,25 +11,58 @@ const adminController = {
       if (!admin) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      if (admin.password !== password) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-      if(admin.token && jwt.verify(admin.token, process.env.secret)){
-        return res.json({
-          admin: {
-            name: admin.name,
-            email: admin.email,
-          },
-          token : admin.token
+      // Lock Checker
+      const currentTime = new Date();
+      if (admin.lockedduration && new Date(admin.lockedduration) > currentTime) {
+        const remainingLockTime = Math.ceil((new Date(admin.lockedduration) - currentTime) / 60000);
+        return res.status(403).json({ 
+          message: `Account is locked. Try again in ${remainingLockTime} minutes.` 
         });
       }
 
-      const token = jwt.sign({
-        id: admin.adminid,
-        role: admin.role
-      }, process.env.secret, { expiresIn: '1h' });
+      // Wrong Password Handler
 
-      await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);
+      if (admin.password !== password) {
+        const loginFailCounter = admin.loginfailcounter + 1;
+        let lockedUntil = null;
+
+        if (loginFailCounter >= 3) {
+          const lockDurationMinutes = 30;
+          lockedUntil = new Date(currentTime.getTime() + lockDurationMinutes * 60 * 1000); 
+        }
+        await client.query(
+          "UPDATE admins SET loginfailcounter = $1, lockedduration = $2 WHERE adminid = $3",
+          [loginFailCounter, lockedUntil, admin.adminid]
+        );
+        
+        if (loginFailCounter >= 3) {
+          return res.status(403).json({ message: "Account locked due to multiple failed login attempts. Try again in 30 minutes." });
+        } else {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+      }
+      // if login success
+      await client.query(
+        "UPDATE admins SET loginfailcounter = 0, lockedduration = NULL WHERE adminid = $1",
+        [admin.adminid]
+      );
+      // Token Checker
+      let token = admin.token;
+      try {
+        jwt.verify(token, process.env.secret); 
+      } 
+      catch (error) {
+        if (error.name === 'TokenExpiredError') {
+          // If token expired we generate a new one
+          token = jwt.sign({
+            id: admin.adminid,
+            role: admin.role
+          }, process.env.secret, { expiresIn: '1h' });
+
+          await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);
+        }
+      }
+      //Otherwise just return
       return res.json({
         admin: {
           name: admin.name,

@@ -1,14 +1,14 @@
 const express = require("express");
 const app = express();
 const bodyParser = require('body-parser');
-const client = require('./dbClient'); 
+const client = require('./dbClient');
 const adminRoutes = require('./api/routes/adminRoutes.js')
 const userRoutes = require('./api/routes/userRoutes.js')
 
 
 app.use(bodyParser.json());
 
-client.connect() 
+client.connect()
   .then(() => console.log("Database connected"))
   .catch((err) => console.log("Error connecting to the database", err));
 
@@ -17,8 +17,8 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
-app.use('/admin', adminRoutes); 
-app.use('/user', userRoutes); 
+app.use('/admin', adminRoutes);
+app.use('/user', userRoutes);
 
 
 app.listen(3000, () => {

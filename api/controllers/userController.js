@@ -55,15 +55,30 @@ const userController = {
             if (!passwordChecker) {
                 return res.status(401).json({ message: "Invalid credentials!" });
             }
-            return res.status(200).json({
+
+            if(user.token && jwt.verify(user.token, process.env.secret)){
+                return res.json({
+                    user: {
+                        name : user.name,
+                        email : user.email,
+                    },
+                    token : user.token
+                })
+            }
+
+            const token = jwt.sign({
+                id: user.userid,
+            },process.env.secret, {expiresIn: '1h'});
+
+            await client.query("UPDATE users SET token $1 WHERE userid = $2", [token,userid])
+            return res.json({
                 message: "Login successful!",
                 user: {
-                    userId: user.userId,
+                    name: user.name,
                     email: user.email,
-                    name: user.name
-                }
+                },
+                token: token
             });
-
         }
         catch(err){
             console.log("Error in User Login:", err);

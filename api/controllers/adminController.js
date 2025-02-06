@@ -1,6 +1,6 @@
 
 const client = require('../../dbClient');
-
+const jwt = require('jsonwebtoken');
 const adminController = {
   login: async (req, res, next) => {
     const { email, password } = req.body;
@@ -14,12 +14,29 @@ const adminController = {
       if (admin.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
+      if(admin.token && jwt.verify(admin.token, process.env.secret)){
+        return res.json({
+          admin: {
+            name: admin.name,
+            email: admin.email,
+          },
+          token : admin.token
+        });
+      }
+
+      const token = jwt.sign({
+        id: admin.adminid,
+      }, process.env.secret, { expiresIn: '1h' });
+
+      await client.query("UPDATE admins SET token = $1 WHERE adminid = $2", [token, admin.adminid]);
       return res.json({
         admin: {
           name: admin.name,
           email: admin.email,
         },
+        token: token,
       });
+
     } catch (err) {
       console.log("Error in login:", err);
       return res.status(500).json({ message: "Internal server error" });

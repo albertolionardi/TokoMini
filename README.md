@@ -1,9 +1,9 @@
 # Toko Mini
 
 ## What is this?
-Test project for Dihardja Software Solutions.
+Mini Project.
 
-**NOTE: For interviewer purposes I intentionally pushed the .env file to make the database setup much easier for the tester.**
+**NOTE: For simplifying purposes I intentionally pushed the .env file to make the database setup much easier.**
 
 ## Tech stacks
 
@@ -29,5 +29,3 @@ The project is using these tech stacks :
 - For admin credentials :
   - Email : `admin@example.com`
   - Password : `adminpassword`
-    - **As mentioned in project description, there is no hashing for admin's password, so i stored the password as-is.**
-- Happy testing ^_^
